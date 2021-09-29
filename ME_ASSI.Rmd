@@ -1,0 +1,97 @@
+---
+title: "ME_Assi"
+author: "PhaniSarma"
+date: "9/27/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+ds <- read.csv("F:/data3.csv")
+DealerAllowances <- ds$Dealer.Allowance
+caseShipments <- ds$Case.Shipments
+caseShipments <-as.numeric(caseShipments)
+## DealerAllowances <- DealerAllowances[13:60]
+ SeasonalIndex <- ds$Seasonal.Index
+caseShipments
+## SeasonalIndex <- SeasonalIndex[13:60]
+ consumerPacks <- ds$Consumer.Packs
+ consumerPacks
+##consumerPacks <- consumerPacks[13:60]
+ model_1 <- lm(caseShipments~consumerPacks, na.action = na.omit)
+ summary(model_1)
+ 
+ model_2 <- lm(caseShipments~DealerAllowances)
+ summary(model_2)
+ 
+ model_3 <- lm(caseShipments~consumerPacks+DealerAllowances)
+ summary(model_3)
+
+ model_4 <- lm(caseShipments~consumerPacks+DealerAllowances+SeasonalIndex)
+ summary(model_4)
+ 
+ timeFactor <- c(1:60)
+ 
+ # Create an empty list
+adjusted_DA <- c()
+# Create a for statement to populate the list
+for (i in seq(1, 60, by=1)) {
+  if(i>1){
+     adjusted_DA[i] <- (DealerAllowances[i]*0.85)+(DealerAllowances[i-1]*0.15)
+  }else{
+adjusted_DA[i]= (DealerAllowances[i]*0.85)
+  }
+}
+
+print("Adjusted DA is")
+print(adjusted_DA)
+
+
+adjusted_CP <- c()
+# Create a for statement to populate the list
+for (i in seq(1, 60, by=1)) {
+  if(i>1){
+     adjusted_CP[i] <- ((consumerPacks[i]*0.85)+(consumerPacks[i-1]*0.15))
+  }else{
+adjusted_CP[i]=(consumerPacks[i]*0.85)
+  }
+}
+print("adjusted CP is : ")
+print(adjusted_CP)
+
+lagged_DA <- c()
+for (i in seq(1,58)){
+  lagged_DA[i+2] = adjusted_DA[i]
+}
+print("lagged DA is :")
+print(lagged_DA)
+
+lagged_CP <- c()
+for (i in seq(1,59)){
+  lagged_CP[i+1] = adjusted_CP[i]
+}
+
+SA_CaseShipments <- c()
+for(i in seq(1,60)){
+  SA_CaseShipments[i]=(caseShipments[i]*100)/SeasonalIndex[i]
+}
+
+
+print("lagged CP is :")
+print(lagged_CP)
+
+model_7 <- lm(caseShipments~adjusted_CP+adjusted_DA+timeFactor+lagged_CP+lagged_DA+SeasonalIndex)
+ summary(model_7)
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
